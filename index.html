@@ -493,6 +493,103 @@
   .rotate-180 {
     transform: rotate(180deg);
   }
+
+  /* GDPR Banner */
+  .gdpr-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, rgba(20, 20, 20, 0.98), rgba(30, 30, 30, 0.98));
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(59, 130, 246, 0.3);
+    padding: 20px;
+    z-index: 1000;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+    animation: slideUp 0.3s ease;
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  .gdpr-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .gdpr-text {
+    flex: 1;
+    min-width: 300px;
+  }
+
+  .gdpr-text p {
+    margin: 0;
+    color: #e0e0e0;
+    line-height: 1.6;
+  }
+
+  .gdpr-text strong {
+    color: #ffffff;
+  }
+
+  .gdpr-buttons {
+    display: flex;
+    gap: 12px;
+  }
+
+  .gdpr-btn {
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    font-size: 14px;
+  }
+
+  .gdpr-accept {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    color: white;
+  }
+
+  .gdpr-accept:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+  }
+
+  .gdpr-decline {
+    background: transparent;
+    color: #a0a0a0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .gdpr-decline:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+  }
+
+  @media (max-width: 768px) {
+    .gdpr-content {
+      flex-direction: column;
+      text-align: center;
+    }
+    
+    .gdpr-buttons {
+      width: 100%;
+      justify-content: center;
+    }
+  }
 </style>
 </head>
 <body>
@@ -1143,7 +1240,168 @@
       }, 1000);
     }
   });
+
+  // Analytics tracking system
+  const ANALYTICS_API = 'https://your-go-backend.railway.app/api/analytics';
+
+  // Track page view
+  function trackPageView() {
+    const eventData = {
+      event_type: 'page_view',
+      page: window.location.pathname,
+      timestamp: new Date().toISOString(),
+      session_id: getSessionId(),
+      user_agent: navigator.userAgent,
+      screen_width: window.innerWidth,
+      screen_height: window.innerHeight
+    };
+    
+    sendAnalyticsEvent(eventData);
+  }
+
+  // Track time on page
+  let pageLoadTime = Date.now();
+  window.addEventListener('beforeunload', function() {
+    const timeSpent = Math.floor((Date.now() - pageLoadTime) / 1000);
+    
+    const eventData = {
+      event_type: 'time_spent',
+      page: window.location.pathname,
+      duration_seconds: timeSpent,
+      timestamp: new Date().toISOString(),
+      session_id: getSessionId()
+    };
+    
+    // Use sendBeacon for unload events (more reliable)
+    navigator.sendBeacon(
+      ANALYTICS_API, 
+      JSON.stringify(eventData)
+    );
+  });
+
+  // Track clicks
+  document.addEventListener('click', function(e) {
+    const element = e.target;
+    const elementInfo = {
+      tag: element.tagName,
+      id: element.id || null,
+      class: element.className || null,
+      text: element.innerText?.substring(0, 50) || null
+    };
+    
+    const eventData = {
+      event_type: 'click',
+      element: elementInfo,
+      page: window.location.pathname,
+      timestamp: new Date().toISOString(),
+      session_id: getSessionId()
+    };
+    
+    sendAnalyticsEvent(eventData);
+  });
+
+  // Helper: Send analytics event
+  async function sendAnalyticsEvent(data) {
+    try {
+      await fetch(ANALYTICS_API, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+      });
+    } catch (error) {
+      console.error('Analytics error:', error);
+      // Fail silently - don't break user experience
+    }
+  }
+
+  // Helper: Get or create session ID
+  function getSessionId() {
+    let sessionId = sessionStorage.getItem('analytics_session');
+    if (!sessionId) {
+      sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      sessionStorage.setItem('analytics_session', sessionId);
+    }
+    return sessionId;
+  }
+
+  // Initialize tracking on page load
+  window.addEventListener('load', trackPageView);
+  // GDPR Compliance
+  function initGDPR() {
+    const banner = document.getElementById('gdpr-banner');
+    const acceptBtn = document.getElementById('gdpr-accept');
+    const declineBtn = document.getElementById('gdpr-decline');
+    
+    // Check if user already made a choice
+    const consent = localStorage.getItem('analytics_consent');
+    
+    if (consent === null) {
+      // Show banner if no choice made
+      banner.style.display = 'block';
+    } else if (consent === 'accepted') {
+      // Initialize analytics
+      initAnalytics();
+    }
+    
+    acceptBtn.addEventListener('click', function() {
+      localStorage.setItem('analytics_consent', 'accepted');
+      banner.style.display = 'none';
+      initAnalytics();
+    });
+    
+    declineBtn.addEventListener('click', function() {
+      localStorage.setItem('analytics_consent', 'declined');
+      banner.style.display = 'none';
+    });
+  }
+
+  function initAnalytics() {
+    // Only track if consent given
+    trackPageView();
+    
+    document.addEventListener('click', function(e) {
+      const element = e.target;
+      const elementInfo = {
+        tag: element.tagName,
+        id: element.id || null,
+        class: element.className || null,
+        text: element.innerText?.substring(0, 50) || null
+      };
+      
+      const eventData = {
+        event_type: 'click',
+        element: elementInfo,
+        page: window.location.pathname,
+        timestamp: new Date().toISOString(),
+        session_id: getSessionId()
+      };
+      
+      sendAnalyticsEvent(eventData);
+    });
+  }
+
+  // Initialize GDPR check on load
+  document.addEventListener('DOMContentLoaded', initGDPR);
 </script>
+
+<!-- GDPR Cookie Consent Banner -->
+<div id="gdpr-banner" class="gdpr-banner" style="display: none;">
+  <div class="gdpr-content">
+    <div class="gdpr-text">
+      <p>
+        <strong>We value your privacy</strong><br>
+        This site uses analytics to improve user experience. We collect anonymous 
+        data about page visits, clicks, and time spent. No personal information is stored.
+      </p>
+    </div>
+    <div class="gdpr-buttons">
+      <button id="gdpr-accept" class="gdpr-btn gdpr-accept">Accept</button>
+      <button id="gdpr-decline" class="gdpr-btn gdpr-decline">Decline</button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
