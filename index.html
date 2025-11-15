@@ -708,6 +708,21 @@
               <div class="text-blue-400 mt-2">}</div>
             </div>
           </div>
+          <div class="relative mt-8">
+            <div class="code-snippet hover-lift" id="analytics-card">
+              <div class="code-content">
+                <div class="text-blue-400">const <span class="text-yellow-300">siteAnalytics</span> = {</div>
+                <div class="ml-4 mt-2">
+                  <div class="text-gray-300">totalViews: <span class="text-orange-300" id="stat-views">--</span>,</div>
+                  <div class="text-gray-300">totalClicks: <span class="text-orange-300" id="stat-clicks">--</span>,</div>
+                  <div class="text-gray-300">avgTimeSpent: <span class="text-orange-300" id="stat-time">--</span>,</div>
+                  <div class="text-gray-300">status: <span class="text-green-400">'tracking ✓'</span></div>
+                </div>
+                <div class="text-blue-400 mt-2">};</div>
+                <div class="text-gray-500 text-xs mt-3">// Updates every 30 seconds</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -1445,6 +1460,56 @@
 
     // Initialize GDPR check on load
     document.addEventListener('DOMContentLoaded', initGDPR);
+
+    // Live Analytics Display
+    async function updateAnalyticsDisplay() {
+      try {
+        const response = await fetch('https://backend-production-eb56.up.railway.app/api/stats');
+        
+        // Check if response is ok
+        if (!response.ok) {
+          throw new Error('Backend unavailable');
+        }
+        
+        const data = await response.json();
+        
+        // Update the display
+        document.getElementById('stat-views').textContent = data.events_by_type.page_view || 0;
+        document.getElementById('stat-clicks').textContent = data.events_by_type.click || 0;
+        
+        // Calculate average time spent
+        const timeSpentEvents = data.events_by_type.time_spent || 0;
+        const avgTime = timeSpentEvents > 0 ? Math.round(data.total_events / timeSpentEvents) : 0;
+        document.getElementById('stat-time').textContent = `${avgTime}s`;
+        
+        // Make sure card is visible if it was hidden
+        const cardContainer = document.getElementById('analytics-card');
+        if (cardContainer && cardContainer.parentElement) {
+          cardContainer.parentElement.style.display = 'block';
+        }
+        
+      } catch (error) {
+        console.error('Analytics backend unavailable:', error);
+        
+        // GRACEFUL DEGRADATION: Hide the entire analytics card
+        const cardContainer = document.getElementById('analytics-card');
+        if (cardContainer && cardContainer.parentElement) {
+          cardContainer.parentElement.style.display = 'none';
+        }
+      }
+    }
+
+    // Update analytics on page load
+    window.addEventListener('load', function() {
+      updateAnalyticsDisplay();
+      
+      // Refresh every 30 seconds, only when tab is visible
+      setInterval(() => {
+        if (!document.hidden) {
+          updateAnalyticsDisplay();
+        }
+      }, 30000); // 30 seconds instead of 10
+    });
   </script>
 
   <!-- GDPR Cookie Consent Banner -->
