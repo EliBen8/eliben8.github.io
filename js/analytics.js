@@ -1,6 +1,6 @@
 // js/analytics.js
 
-const ANALYTICS_API = 'https://backend-production-eb56.up.railway.app/api/analytics';
+const ANALYTICS_API = 'https://producer-production-0c48.up.railway.app/api/analytics';
 
 // ============================================
 // HELPER: SESSION MANAGEMENT
@@ -130,7 +130,7 @@ function initAnalytics() {
 // ============================================
 async function updateAnalyticsDisplay() {
     try {
-        const response = await fetch('https://backend-production-eb56.up.railway.app/api/stats');
+        const response = await fetch('https://producer-production-0c48.up.railway.app/api/stats');
 
         // Check if response is ok
         if (!response.ok) {
