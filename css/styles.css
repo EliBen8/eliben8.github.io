@@ -305,11 +305,6 @@ body {
     transform: translateY(-1px);
 }
 
-/* Make project cards equal height */
-#projects .grid {
-    align-items: stretch;
-}
-
 /* Project cards */
 .project-card {
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
@@ -319,9 +314,6 @@ body {
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
 }
 
 .project-card::before {
