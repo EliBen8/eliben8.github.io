@@ -382,7 +382,6 @@ html {
 .timeline-item {
     position: relative;
     padding-left: 60px;
-    margin-bottom: 40px;
 }
 
 .timeline-item::before {
@@ -395,16 +394,37 @@ html {
     background: linear-gradient(180deg, #3b82f6, #8b5cf6);
 }
 
-.timeline-item::after {
+.timeline-card {
+    position: relative;
+    margin-bottom: 32px;
+}
+
+.timeline-card::before {
     content: '';
     position: absolute;
-    left: 14px;
-    top: 8px;
+    left: -46px;
+    top: 28px;
     width: 14px;
     height: 14px;
     background: #3b82f6;
     border-radius: 50%;
     box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+    z-index: 1;
+}
+
+.timeline-card.current::before {
+    background: #3b82f6;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+    animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+    0%, 100% {
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+    }
+    50% {
+        box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.1), 0 0 0 4px rgba(59, 130, 246, 0.3);
+    }
 }
 
 /* Responsive design */
@@ -417,8 +437,8 @@ html {
         left: 15px;
     }
 
-    .timeline-item::after {
-        left: 9px;
+    .timeline-card::before {
+        left: -31px;
     }
 
     .skills-grid {
