@@ -86,6 +86,22 @@ body {
     -webkit-text-fill-color: transparent;
 }
 
+/* Typewriter Cursor */
+.typewriter-cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1.2em;
+    background-color: #3b82f6;
+    margin-left: 2px;
+    vertical-align: middle;
+    animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
 /* Code snippet styling */
 .code-snippet {
     background: linear-gradient(135deg, rgba(15, 15, 15, 0.8), rgba(25, 25, 25, 0.6));
